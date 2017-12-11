@@ -25,7 +25,7 @@
     character(len=5):: ind
 contains    
     subroutine init
-        allocate(KmMat(numMasterDOF, numMasterDOF))
+        allocate(KmMat(numMasterDOF, numMasterDOF), Fm(numMasterDOF))
 		allocate(C0mMat(numMasterDOF, numMasterDOF))
         allocate(C1Mat(numMasterDOF))
         numTotalEqua = numLinearEqua + numNonLnEqua
@@ -51,7 +51,7 @@ contains
     ! card 2.2
     ! 分析类型，集中节点比热数，相变界面数
     integer:: analyType, nSHnd, nLatht
-    integer:: CmatType=0
+    integer:: CmatType
     ! card 2.3
     ! solve the eigen or not
     integer:: eigenIndex
@@ -236,10 +236,10 @@ contains
             use heatFlowCtrlInf, only: nCurve, maxCurvePoint
             integer:: curveID, nCurvePoints, i, j
         
-            allocate(timeAt(nCurve, maxCurvePoint), timeFuncAt(nCurve, maxCurvePoint))
+            allocate(timeAt(maxCurvePoint, nCurve), timeFuncAt(maxCurvePoint, nCurve))
             do i=1,nCurve   
                 read(5,*) curveID, nCurvePoints                 
-                read(5,*) (timeAt(curveID, j), timeFuncAt(curveID, j), j=1,nCurvePoints)
+                read(5,*) (timeAt(j, curveID), timeFuncAt(j, curveID), j=1,nCurvePoints)
             end do
         end subroutine read_timeFuncInf
     end module
@@ -260,57 +260,10 @@ contains
             if(nRadiaNd>0) call read_RadiaNdFlow
             if(nLoad1>0) call read_Load1
         end subroutine read_heatFlowInf
-    
-        subroutine exceute_heatFlow
-		
-		end subroutine exceute_heatFlow
-		
-		
-		subroutine exceuteLoad1
-		use timeStepInf, only: a0
-		use mainCtrlInf, only: numEquation
-		use solCtrlInf, only: Fm, KmMat, C0mMat, C1Mat
-		real:: r(nFixTempNd), a0_
-		integer:: i, j, k, fixTempNdID, load1NdID
-			if(nFixTempNd>0) then
-				do i=1,nFixTempNd
-					fixTempNdID = fixTempNdInf(1,i)
-					do j=1,nLoad1
-						load1NdID = load1Inf(1, j)
-						Fm(ndID) = Fm(ndID) + load1Value(iper,j)
-						Fm(load1NdID) = Fm(load1NdID) + fixTempNdValue(iper, n)*1.e10
-					enddo
-				enddo 
-			end if
-			if(iope==2) a0_ = -a0
-			if(CmatType==0) then 
-				do i=1, numEquation
-					do j=1, numEquation
-						KmMat(i,j) = a0_*C0mMat(i,j)
-					enddo
-				enddo 
-			else if(CmatType==1) then
-				do i=1, numEquation
-					KmMat(i,i) = a0_*C1Mat(i)
-				enddo
-			end if
-		end subroutine exceuteLoad1
-		
-		
-		
-		subroutine exceuteConvNdFlow
-		
-        
-		
-		end subroutine exceuteConvNdFlow
-		
-		subroutine exceuteHeatGen
-		
-		end subroutine exceuteHeatGen
-		
+
         subroutine read_fixTempNdFlow
-        
-            integer:: i, j, k, ndID, curveID, fac, kn, pointLoop
+        use heatFlowCtrlInf, only: nCurve, maxCurvePoint
+            integer:: i, j, k, l, m, ndID, curveID, fac, kn, pointLoop
 			real:: time_now, time_pre, timeTmp, startTime, sloop, arg
             allocate(fixTempNdInf(4, nFixTempNd), fixTempNdValue(stepNumAt(iper), nFixTempNd))! , fixTempNdValue()
             
@@ -328,15 +281,22 @@ contains
 							if(timeTmp<=0.0) return
 							pointLoop = 0
                             write(*,*) timeAt(1,1)
+                            do l=1,nCurve
+                                do m=1,maxCurvePoint
+                                    write(*,*) timeAt(m,l)
+                                enddo
+                            enddo
 							do k=2,maxCurvePoint
 								pointLoop = pointLoop + 1
-								if(timeTmp>=timeAt(curveID, k-1).and.timeTmp<=timeAt(curveID, k-1)) go to 10
-								!pause
+                                temp1 = timeAt(k-1, curveID)
+                                temp2 = timeAt(k, curveID)
+								if((timeTmp>=timeAt(k-1, curveID)).and.(timeTmp<=timeAt(k, curveID))) exit
+								pause
 							enddo						
-10							sloop = (timeFuncAt(curveID, pointLoop+1) - timeFuncAt(curveID, pointLoop))/&
-                                    (timeAt(curveID, pointLoop+1) - timeAt(curveID, pointLoop))
-							arg = timeFuncAt(curveID, pointLoop) + sloop*(timeTmp - timeAt(curveID, pointLoop))
-							fixTempNdInf(j, i) = arg*fac
+10							sloop = (timeFuncAt(pointLoop+1, curveID) - timeFuncAt(pointLoop, curveID))/&
+                                    (timeAt(pointLoop+1, curveID) - timeAt(pointLoop, curveID))
+							arg = timeFuncAt(pointLoop, curveID) + sloop*(timeTmp - timeAt(pointLoop, curveID))
+							fixTempNdValue(j, i) = arg*fac
 						enddo
                       
                     enddo
@@ -363,12 +323,14 @@ contains
 							pointLoop = 0
 							do k=2,maxCurvePoint
 								pointLoop = pointLoop + 1
-								if(timeTmp>timeAt(pointLoop-1, curveID).and.timeTmp<timeAt(pointLoop, curveID)) exit
+                                temp1 = timeAt(k-1, curveID)
+                                temp2 = timeAt(k, curveID)
+								if((timeTmp>=timeAt(k-1, curveID)).and.(timeTmp<=timeAt(k, curveID))) exit
 								pause
 							enddo						
-							sloop = (timeFuncAt(curveID, pointLoop+1) - timeFuncAt(curveID, pointLoop))/&
-                                    (timeAt(curveID, pointLoop+1) - timeAt(curveID, pointLoop))
-							arg = timeFuncAt(curveID, pointLoop) + sloop*(timeTmp - timeAt(curveID, pointLoop))
+							sloop = (timeFuncAt(pointLoop+1, curveID) - timeFuncAt(pointLoop, curveID))/&
+                                    (timeAt(pointLoop+1, curveID) - timeAt(pointLoop, curveID))
+							arg = timeFuncAt(pointLoop, curveID) + sloop*(timeTmp - timeAt(pointLoop, curveID))
 							convNdValue(j, i) = arg*fac
 						enddo
 						
@@ -396,12 +358,14 @@ contains
 							pointLoop = 0
 							do k=2,maxCurvePoint
 								pointLoop = pointLoop + 1
-								if(timeTmp>timeAt(pointLoop-1, curveID).and.timeTmp<timeAt(pointLoop, curveID)) exit
+                                temp1 = timeAt(k-1, curveID)
+                                temp2 = timeAt(k, curveID)
+								if((timeTmp>=timeAt(k-1, curveID)).and.(timeTmp<=timeAt(k, curveID))) exit
 								pause
 							enddo						
-							sloop = (timeFuncAt(curveID, pointLoop+1) - timeFuncAt(curveID, pointLoop))/&
-                                    (timeAt(curveID, pointLoop+1) - timeAt(curveID, pointLoop))
-							arg = timeFuncAt(curveID, pointLoop) + sloop*(timeTmp - timeAt(curveID, pointLoop))
+							sloop = (timeFuncAt(pointLoop+1, curveID) - timeFuncAt(pointLoop, curveID))/&
+                                    (timeAt(pointLoop+1, curveID) - timeAt(pointLoop, curveID))
+							arg = timeFuncAt(pointLoop, curveID) + sloop*(timeTmp - timeAt(pointLoop, curveID))
 							radiaNdValue(j, i) = arg*fac
 						enddo
 						
@@ -429,12 +393,14 @@ contains
 							pointLoop = 0
 							do k=2,maxCurvePoint
 								pointLoop = pointLoop + 1
-								if(timeTmp>timeAt(pointLoop-1, curveID).and.timeTmp<timeAt(pointLoop, curveID)) exit
+                                temp1 = timeAt(k-1, curveID)
+                                temp2 = timeAt(k, curveID)
+								if((timeTmp>=timeAt(k-1, curveID)).and.(timeTmp<=timeAt(k, curveID))) exit
 								pause
 							enddo						
-							sloop = (timeFuncAt(curveID, pointLoop+1) - timeFuncAt(curveID, pointLoop))/&
-                                    (timeAt(curveID, pointLoop+1) - timeAt(curveID, pointLoop))
-							arg = timeFuncAt(curveID, pointLoop) + sloop*(timeTmp - timeAt(curveID, pointLoop))
+							sloop = (timeFuncAt(pointLoop+1, curveID) - timeFuncAt(pointLoop, curveID))/&
+                                    (timeAt(pointLoop+1, curveID) - timeAt(pointLoop, curveID))
+							arg = timeFuncAt(pointLoop, curveID) + sloop*(timeTmp - timeAt(pointLoop, curveID))
 							load1Value(j, i) = arg*fac
 						enddo
 						
@@ -456,6 +422,58 @@ contains
         
         
         end subroutine read_Load3
+        
+        
+            
+        subroutine exceute_heatFlow
+		
+		end subroutine exceute_heatFlow
+		
+		
+		subroutine exceuteLoad1
+		use timeStepInf, only: a0
+		use mainCtrlInf, only: numEquation, CmatType
+		use solCtrlInf, only: Fm, KmMat, C0mMat, C1Mat
+		real:: r(nFixTempNd), a0_
+		integer:: i, j, k, fixTempNdID, load1NdID
+			if(nFixTempNd>0) then
+				do i=1,nFixTempNd
+					fixTempNdID = fixTempNdInf(1,i)
+					do j=1,nLoad1
+						load1NdID = load1Inf(1, j)
+						Fm(load1NdID) = Fm(load1NdID) + load1Value(iper,j)
+						Fm(fixTempNdID) = Fm(fixTempNdID) + fixTempNdValue(iper, fixTempNdID)*1.e10
+					enddo
+				enddo 
+            end if
+            a0_ = a0
+			if(iope==2) a0_ = -a0
+			if(CmatType==0) then 
+				do i=1, numEquation
+					do j=1, numEquation
+						KmMat(i,j) = a0_*C0mMat(i,j)
+					enddo
+				enddo 
+			else if(CmatType==1) then
+				do i=1, numEquation
+					KmMat(i,i) = a0_*C1Mat(i)
+				enddo
+			end if
+		end subroutine exceuteLoad1
+		
+		
+		
+		subroutine exceuteConvNdFlow
+		
+        
+		
+		end subroutine exceuteConvNdFlow
+		
+		subroutine exceuteHeatGen
+		
+		end subroutine exceuteHeatGen
+		
+        
         
     end module heatFlowInf
 
