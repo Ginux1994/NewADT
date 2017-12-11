@@ -14,7 +14,7 @@
 !*****************************************************************************  
     subroutine equitIte(effKmat, outHeatF, tempInc, tempPre) 
     use mainCtrlInf, only: numEquation, nEquitTStep, nLatht, CmatType, haveSHnode, nLrElmGrp, nNonlrElmGrp
-    use solCtrlInf, only: C1mat, C0mat, icount
+    use solCtrlInf !, only: C1Mat, C0Mat, icount
     use heatFlowCtrlInf, only: haveLoad, haveLnConvOrFixTempLoad
     use ndSHInf, only: dql, qlv
     use timeStepInf, only: a0, convergenFlag
@@ -51,10 +51,10 @@
             workVec = a0*tempInc
             if (CmatType == 1) then ! lump capacity matrix
                 do i=1,numEquation
-                    outHeatF(i) = outHeatF(i) - C1mat(1)*workVec(i)
+                    outHeatF(i) = outHeatF(i) - C1Mat(1)*workVec(i)
                 enddo
             else if (CmatType == 2) then ! consistent capacity matrix  
-                call mult(outHeatF, C0mat, workVec, numEquation, numEquation)
+                call mult(outHeatF, C0mMat, workVec, numEquation, numEquation)
                 !outHeatF = outHeatF - C0mat*workVec
             end if
             
