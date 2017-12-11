@@ -34,7 +34,7 @@
    
  !************************************************************************************************************************       
     
-    subroutine assemElmMat(elmMat, ndID)
+    subroutine assemElmKMat(elmMat, ndID)
     use solCtrlInf, only: numTotalEqua, numMasterDOF, numSlaveDOF, KmMat, KsMat, KsmMat
     use nodeInf, only: dofID
     implicit none
@@ -55,7 +55,7 @@
                 end if
             else if (outterDOFID<0) then
                 if (innerDOFID>0) then 
-                    KsmMat(innerDOFID,-outterDOFID) = KsMat(innerDOFID,-outterDOFID) + elmMat(i,j)
+                    KsmMat(innerDOFID,-outterDOFID) = KsmMat(innerDOFID,-outterDOFID) + elmMat(i,j)
                 else if (innerDOFID<0) then
                     KsMat(-outterDOFID,-innerDOFID) = KsMat(-outterDOFID,-innerDOFID) + elmMat(i,j)
                     if (outterDOFID /= innerDOFID) KsMat(-innerDOFID,-outterDOFID) = KsMat(-outterDOFID,-innerDOFID)
@@ -63,7 +63,39 @@
             end if
         enddo
     enddo   
-    end subroutine assemElmMat
+    end subroutine assemElmKMat
+!************************************************************************************************************************       
+    
+    subroutine assemElmC0Mat(elmMat, ndID)
+    use solCtrlInf !, only: numTotalEqua, numMasterDOF, numSlaveDOF, C0sMat(:, :), C0mMat(:, :), C0smMat(:, :),C1Mat(:)
+    use nodeInf, only: dofID
+    implicit none
+    real:: elmMat(8,8)
+    integer:: ndID(8)   
+    integer:: outterDOFID, innerDOFID, i, j   
+    
+    do i =1,8
+        outterDOFID = dofID(1, ndID(i))
+        do j=1,8
+            innerDOFID = dofID(1, ndID(j))
+            if (outterDOFID>0) then
+                if (innerDOFID>0) then 
+                    C0mMat(outterDOFID,innerDOFID) = C0mMat(outterDOFID,innerDOFID) + elmMat(i,j)
+                    if (outterDOFID /= innerDOFID)  C0mMat(innerDOFID,outterDOFID) = C0mMat(outterDOFID,innerDOFID)
+                else if (innerDOFID<0) then
+                    C0smMat(outterDOFID,-innerDOFID) = C0smMat(outterDOFID,-innerDOFID) + elmMat(i,j)
+                end if
+            else if (outterDOFID<0) then
+                if (innerDOFID>0) then 
+                    C0smMat(innerDOFID,-outterDOFID) = C0smMat(innerDOFID,-outterDOFID) + elmMat(i,j)
+                else if (innerDOFID<0) then
+                    C0sMat(-outterDOFID,-innerDOFID) = C0sMat(-outterDOFID,-innerDOFID) + elmMat(i,j)
+                    if (outterDOFID /= innerDOFID) C0sMat(-innerDOFID,-outterDOFID) = C0sMat(-outterDOFID,-innerDOFID)
+                end if
+            end if
+        enddo
+    enddo   
+    end subroutine assemElmC0Mat
 !************************************************************************************************************************    
     subroutine assemElmVec(elmVec, ndID)
     use mainCtrlInf, only: nNd
