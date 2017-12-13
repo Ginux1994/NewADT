@@ -33,6 +33,38 @@
     end subroutine mapLocalDOF
    
  !************************************************************************************************************************       
+    subroutine assemElmKrMat(elmMat, ndID)
+    use solCtrlInf, only: numTotalEqua, numMasterDOF, numSlaveDOF, KmMat, KsMat, KsmMat
+    use nodeInf, only: dofID
+    implicit none
+    real:: elmMat(4,4)
+    integer:: ndID(4)   
+    integer:: outterDOFID, innerDOFID, i, j   
+    
+    do i =1,4
+        outterDOFID = dofID(1, ndID(i))
+        do j=1,4
+            innerDOFID = dofID(1, ndID(j))
+            if (outterDOFID>0) then
+                if (innerDOFID>0) then 
+                    KmMat(outterDOFID,innerDOFID) = KmMat(outterDOFID,innerDOFID) + elmMat(i,j)
+                    if (outterDOFID /= innerDOFID)  KmMat(innerDOFID,outterDOFID) = KmMat(outterDOFID,innerDOFID)
+                else if (innerDOFID<0) then
+                    KsmMat(outterDOFID,-innerDOFID) = KsmMat(outterDOFID,-innerDOFID) + elmMat(i,j)
+                end if
+            else if (outterDOFID<0) then
+                if (innerDOFID>0) then 
+                    KsmMat(innerDOFID,-outterDOFID) = KsmMat(innerDOFID,-outterDOFID) + elmMat(i,j)
+                else if (innerDOFID<0) then
+                    KsMat(-outterDOFID,-innerDOFID) = KsMat(-outterDOFID,-innerDOFID) + elmMat(i,j)
+                    if (outterDOFID /= innerDOFID) KsMat(-innerDOFID,-outterDOFID) = KsMat(-outterDOFID,-innerDOFID)
+                end if
+            end if
+        enddo
+    enddo   
+    end subroutine assemElmKrMat
+ !************************************************************************************************************************        
+    
     
     subroutine assemElmKMat(elmMat, ndID)
     use solCtrlInf, only: numTotalEqua, numMasterDOF, numSlaveDOF, KmMat, KsMat, KsmMat
@@ -99,13 +131,15 @@
 !************************************************************************************************************************    
     subroutine assemElmVec(elmVec, ndID)
     use mainCtrlInf, only: nNd
+    use nodeInf, only: dofID
     use solCtrlInf, only: numTotalEqua, DOFMap, numMasterDOF, numSlaveDOF, Fs, Fm
     implicit none
-    real:: elmVec(8), ndID(nNd)
+    real:: elmVec(8)
+    integer:: ndID(nNd)
    
     integer:: outterDOFID, i    
     do i =1,8
-        outterDOFID = DOFMap(ndID(i))
+        outterDOFID = dofID(1, ndID(i))
         if (outterDOFID>0) then
             Fm(outterDOFID) = Fm(outterDOFID) + elmVec(i)
         else if (outterDOFID<0) then

@@ -1,15 +1,4 @@
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+ 
     
 !*****************************************************************************  
     subroutine equitIte(effKmat, outHeatF, tempInc, tempPre) 
@@ -18,11 +7,14 @@
     use heatFlowCtrlInf, only: haveLoad, haveLnConvOrFixTempLoad
     use ndSHInf, only: dql, qlv
     use timeStepInf, only: a0, convergenFlag
+    
+    implicit none
     integer:: iteLoop, i, j
     
-    real:: workVec(numEquation), outHeatF(numEquation), tempInc(numEquation), tempPre(numEquation), tempNow(numEquation)
+    real:: workVec(numEquation), outHeatF(numEquation), tempInc(numEquation), tempPre(numEquation), tempNow(numEquation), &
+            effKmat(numEquation, numEquation)
     real:: norm_tempInc = 0.0,norm_tempIncNow = 0.0, norm_tempNow = 0.0, norm_outHeatF = 0.0
-    real:: norm_temp=0.0, tol_input = 0.0, tol_now
+    real:: norm_temp=0.0, tol_input = 0.0, tol_now, rnorm = 0.0
     
     workVec = 0.0 !call initRvec(workVec, numEquation)   
     icount = 3
@@ -43,8 +35,8 @@
             end do
         end if
 ! 2. get the 外部对流及固定温度载荷        
-        if (havaConvLoad>0) then
-            outHeatF = outHeatF - effKmat*tempNow
+        if (haveLnConvOrFixTempLoad>0) then
+            outHeatF = outHeatF - matmul(effKmat, tempNow)
         end if
 ! 3. consider the 热容的作用        
         if (haveSHnode>0) then
@@ -70,8 +62,8 @@
             enddo
         end if
 ! 5. deal with the 非线性单元矩阵，如辐射的作用
-        if (nNonlnGrp>0) then 
-            do i = 1, nNonlnGrp
+        if (nNonlrElmGrp>0) then 
+            do i = 1, nNonlrElmGrp
                 ! read the control file 
                  ! call element
             end do 
@@ -128,6 +120,7 @@
     subroutine updateTemp(tempPre, tempInc)
     use solCtrlInf, only: klin, nLrElm, nNonLrElm
     use mainCtrlInf, only: analyType, timeIntType, alpha, numEquation
+    implicit none
 !timeIntType 
         ! eq.1, euler backward method
         ! eq.2, euler forward method 
