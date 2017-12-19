@@ -33,41 +33,87 @@
     end subroutine mapLocalDOF
    
  !************************************************************************************************************************       
-    
-    subroutine assemElmKMat(elmMat, ndID)
-    use solCtrlInf, only: numTotalEqua, numMasterDOF, numSlaveDOF, KmMat, KsMat, KsmMat
+    subroutine assemStaMatK_k(elmMat, ndID)
+	
+    use solCtrlInf
     use nodeInf, only: dofID
     implicit none
     real:: elmMat(8,8)
-    integer:: ndID(8)   
+    integer:: ndID(8)
     integer:: outterDOFID, innerDOFID, i, j   
     
     do i =1,8
         outterDOFID = dofID(1, ndID(i))
         do j=1,8
             innerDOFID = dofID(1, ndID(j))
-            if (outterDOFID>0) then
-                if (innerDOFID>0) then 
-                    KmMat(outterDOFID,innerDOFID) = KmMat(outterDOFID,innerDOFID) + elmMat(i,j)
-                    if (outterDOFID /= innerDOFID)  KmMat(innerDOFID,outterDOFID) = KmMat(outterDOFID,innerDOFID)
-                else if (innerDOFID<0) then
-                    KsmMat(outterDOFID,-innerDOFID) = KsmMat(outterDOFID,-innerDOFID) + elmMat(i,j)
-                end if
-            else if (outterDOFID<0) then
-                if (innerDOFID>0) then 
-                    KsmMat(innerDOFID,-outterDOFID) = KsmMat(innerDOFID,-outterDOFID) + elmMat(i,j)
-                else if (innerDOFID<0) then
-                    KsMat(-outterDOFID,-innerDOFID) = KsMat(-outterDOFID,-innerDOFID) + elmMat(i,j)
-                    if (outterDOFID /= innerDOFID) KsMat(-innerDOFID,-outterDOFID) = KsMat(-outterDOFID,-innerDOFID)
-                end if
-            end if
+            staMatK_k(outterDOFID,innerDOFID) = staMatK_k(outterDOFID,innerDOFID) + elmMat(i,j)
         enddo
     enddo   
-    end subroutine assemElmKMat
+    end subroutine assemStaMatK_k
+    
+ !************************************************************************************************************************        
+   subroutine assemStaMatK_c(elmMat, ndID)
+	
+    use solCtrlInf
+    use nodeInf, only: dofID
+    implicit none
+    real:: elmMat(4,4)
+    integer:: ndID(4)
+    integer:: outterDOFID, innerDOFID, i, j   
+    
+    do i =1,4
+        outterDOFID = dofID(1, ndID(i))
+        do j=1,4
+            innerDOFID = dofID(1, ndID(j))
+            staMatK_c(outterDOFID,innerDOFID) = staMatK_c(outterDOFID,innerDOFID) + elmMat(i,j)
+        enddo
+    enddo   
+    end subroutine assemStaMatK_c
+ !************************************************************************************************************************        
+       
+    
+    subroutine assemDynMatK_k(elmMat, ndID)
+    use solCtrlInf
+    use nodeInf, only: dofID
+    implicit none
+    real:: elmMat(8,8)
+    integer:: ndID(8)   
+    integer:: outterDOFID, innerDOFID, i, j   
+
+    do i =1,8
+        outterDOFID = dofID(1, ndID(i))
+        do j=1,8
+            innerDOFID = dofID(1, ndID(j))
+            dynMat(outterDOFID,innerDOFID) = dynMat(outterDOFID,innerDOFID) + elmMat(i,j)
+        enddo
+    enddo   
+    end subroutine assemDynMatK_k
+	
+ !************************************************************************************************************************        
+        
+    
+    subroutine assemDynMatK_c_r(elmMat, ndID)
+    use solCtrlInf
+    use nodeInf, only: dofID
+    implicit none
+    real:: elmMat(4,4)
+    integer:: ndID(4)   
+    integer:: outterDOFID, innerDOFID, i, j    
+
+    do i =1,4
+        outterDOFID = dofID(1, ndID(i))
+        do j=1,4
+            innerDOFID = dofID(1, ndID(j))
+            dynMat(outterDOFID,innerDOFID) = dynMat(outterDOFID,innerDOFID) + elmMat(i,j)
+        enddo
+    enddo   
+    end subroutine assemDynMatK_c_r
+
+ 
 !************************************************************************************************************************       
     
     subroutine assemElmC0Mat(elmMat, ndID)
-    use solCtrlInf !, only: numTotalEqua, numMasterDOF, numSlaveDOF, C0sMat(:, :), C0mMat(:, :), C0smMat(:, :),C1Mat(:)
+    use solCtrlInf
     use nodeInf, only: dofID
     implicit none
     real:: elmMat(8,8)
@@ -78,39 +124,72 @@
         outterDOFID = dofID(1, ndID(i))
         do j=1,8
             innerDOFID = dofID(1, ndID(j))
-            if (outterDOFID>0) then
-                if (innerDOFID>0) then 
-                    C0mMat(outterDOFID,innerDOFID) = C0mMat(outterDOFID,innerDOFID) + elmMat(i,j)
-                    if (outterDOFID /= innerDOFID)  C0mMat(innerDOFID,outterDOFID) = C0mMat(outterDOFID,innerDOFID)
-                else if (innerDOFID<0) then
-                    C0smMat(outterDOFID,-innerDOFID) = C0smMat(outterDOFID,-innerDOFID) + elmMat(i,j)
-                end if
-            else if (outterDOFID<0) then
-                if (innerDOFID>0) then 
-                    C0smMat(innerDOFID,-outterDOFID) = C0smMat(innerDOFID,-outterDOFID) + elmMat(i,j)
-                else if (innerDOFID<0) then
-                    C0sMat(-outterDOFID,-innerDOFID) = C0sMat(-outterDOFID,-innerDOFID) + elmMat(i,j)
-                    if (outterDOFID /= innerDOFID) C0sMat(-innerDOFID,-outterDOFID) = C0sMat(-outterDOFID,-innerDOFID)
-                end if
-            end if
+            C0mMat(outterDOFID,innerDOFID) = C0mMat(outterDOFID,innerDOFID) + elmMat(i,j)
+
         enddo
     enddo   
     end subroutine assemElmC0Mat
+
 !************************************************************************************************************************    
-    subroutine assemElmVec(elmVec, ndID)
+    subroutine assemStaVec_k(elmVec, ndID)
     use mainCtrlInf, only: nNd
-    use solCtrlInf, only: numTotalEqua, DOFMap, numMasterDOF, numSlaveDOF, Fs, Fm
+    use nodeInf, only: dofID
+    use solCtrlInf
     implicit none
-    real:: elmVec(8), ndID(nNd)
+    real:: elmVec(8)
+    integer:: ndID(nNd)
    
     integer:: outterDOFID, i    
     do i =1,8
-        outterDOFID = DOFMap(ndID(i))
-        if (outterDOFID>0) then
-            Fm(outterDOFID) = Fm(outterDOFID) + elmVec(i)
-        else if (outterDOFID<0) then
-            Fs(-outterDOFID) = Fs(-outterDOFID) + elmVec(i)
-        end if
+        outterDOFID = dofID(1, ndID(i))
+        staVec(outterDOFID) = staVec(outterDOFID) + elmVec(i)
     enddo
        
-    end subroutine assemElmVec
+    end subroutine assemStaVec_k
+	
+!************************************************************************************************************************    
+    subroutine assemStaVec_c(elmVec, ndID)
+    use mainCtrlInf, only: nNd
+    use nodeInf, only: dofID
+    use solCtrlInf
+    implicit none
+    real:: elmVec(4)
+    integer:: ndID(nNd)   
+    integer:: outterDOFID, i    
+    do i =1,4
+        outterDOFID = dofID(1, ndID(i))
+        staVec(outterDOFID) = staVec(outterDOFID) + elmVec(i)
+    enddo
+       
+    end subroutine assemStaVec_c
+!************************************************************************************************************************    
+    
+    subroutine assemDynVec_k(elmVec, ndID)
+	use mainCtrlInf, only: nNd
+    use nodeInf, only: dofID
+    use solCtrlInf
+    implicit none
+    real:: elmVec(8)
+    integer:: ndID(nNd)
+   
+    integer:: outterDOFID, i    
+    do i =1,8
+        outterDOFID = dofID(1, ndID(i))
+        dynVec(outterDOFID) = dynVec(outterDOFID) + elmVec(i)
+    enddo
+	end subroutine assemDynVec_k
+	
+	subroutine assemDynVec_c_r(elmVec, ndID)
+    use nodeInf, only: dofID
+    use solCtrlInf
+    implicit none
+    real:: elmVec(4)
+    integer:: ndID(4)
+   
+    integer:: outterDOFID, i    
+    do i =1,4
+        outterDOFID = dofID(1, ndID(i))
+        dynVec(outterDOFID) = dynVec(outterDOFID) + elmVec(i)
+    enddo
+	end subroutine assemDynVec_c_r
+	
