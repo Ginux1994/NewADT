@@ -67,7 +67,7 @@ contains
         use mainCtrlInf, only: analyType, CmatType, timeIntType
         use nodeInf, only:dofID
         use heatFlowCtrlInf, only: nConvNd
-        use heatFlowInf, only:convNdValue, convNdInf
+        use heatFlowInf, only:convNdValue, convNdInf, loadStepLoop
         implicit none
             integer:: sfID, elmNdNum, ndID(4), nodeIDtemp1, nodeIDtemp2, i, j, k, &
                         matGrpID
@@ -97,13 +97,13 @@ else if(ind==2) then
                         nodeIDtemp1 = ndID(i)
                         do j=1, nConvNd
                             nodeIDtemp2 = convNdInf(1,j) ! 过滤出受对流节点的输入的环境温度
-                            if(nodeIDtemp1==nodeIDtemp2) tempEnv(i) = convNdValue(1, j)
+                            if(nodeIDtemp1==nodeIDtemp2) tempEnv(i) = convNdValue(loadStepLoop, j)
                         enddo
                         tempNd(i) = Phi_now(nodeIDtemp1)
                     enddo
                     
                     call calLrConvK(4, coords, tempNd, tempEnv, h, res, convK)
-                    call assemDynVec_c_r(res, ndID)        ! 累加对流右端项到 动态vec中，并在每次时间迭代前归零           
+                    call assemStaVec_c(res, ndID)        ! 累加对流右端项到 动态vec中，并在每次时间迭代前归零           
                 enddo   
                 
 else if(ind==4) then
@@ -121,7 +121,7 @@ else if(ind==4) then
                         nodeIDtemp1 = ndID(i)
                         do j=1, nConvNd
                             nodeIDtemp2 = convNdInf(1,j) ! 过滤出受对流节点的输入的环境温度
-                            if(nodeIDtemp1==nodeIDtemp2) tempEnv(i) = convNdValue(1, j)
+                            if(nodeIDtemp1==nodeIDtemp2) tempEnv(i) = convNdValue(loadStepLoop, j)
                         enddo
                         tempNd(i) = Phi_now(nodeIDtemp1)
                     enddo
@@ -197,6 +197,7 @@ end if
                     call dNdxi_conv(r, s, ndNum, nod5, coords, N, areaConv)
                     fac = weightTotal*areaConv
 					! 计算环境平均温度和节点平均温度
+                    tempNd_=0.0; tempEnv_=0.0; tempDelt=0.0;
 					do i=1,ndNum
 						tempEnv_ = tempEnv_ + tempEnv(i)*N(i)
 						tempNd_ = tempNd_ + tempNd(i)*N(i)
@@ -263,15 +264,16 @@ end if
                     call dNdxi_conv(r, s, ndNum, nod5, coords, N, areaConv)
                     fac = weightTotal*areaConv*propH
 					! 计算环境平均温度和节点平均温度
+                    tempNd_=0.0; tempEnv_=0.0; tempDelt=0.0;
 					do i=1,ndNum
 						tempEnv_ = tempEnv_ + tempEnv(i)*N(i)
 						tempNd_ = tempNd_ + tempNd(i)*N(i)
-						tempDelt = tempDelt + (tempNd(i) - tempEnv(i))*N(i)
+						tempDelt = tempDelt + (-tempNd(i) + tempEnv(i))*N(i)
                     enddo
 
 					! 计算右端项
 					do i=1,ndNum
-						res(i) = res(i) + fac*N(i)*tempDelt
+						res(i) = res(i) + fac*N(i)*tempEnv_
 					enddo
 					! 选择性的计算对流刚度矩阵      
                     do i=1,ndNum

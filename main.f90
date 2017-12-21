@@ -19,7 +19,7 @@ program test
     outputFile = "OUT.DAT"
     open(unit = 6, file = outputFile)
     
-    
+    write(6,*) title
     iper = 1;
     ind = 0
     call ADINI
@@ -33,7 +33,7 @@ do iper=1,nFixTimeStep
 
     ind = 1; isref = 0; index=0; nReformStep = 0;
     ! 只计算刚度阵，不计算对流右端项
-    call assem_element ! 计算sta传导刚度矩阵 staMatK_k; 累加sta对流刚度矩阵到staMat
+    call assem_element ! 计算sta传导刚度矩阵 staMatK_k; 累加sta对流刚度矩阵到 staMatK_c
         
     
     
@@ -42,10 +42,11 @@ do iper=1,nFixTimeStep
 
 
     call execute_heatFlow  ! 累加第iper总步下各个loadStepLoop时间步下的集中热流+对流右端项，都是sta静态的，存到Fm_step中
-                            ! 而对流放在dyn中，并每loadStepLoop都会更新，而staVec直接从Fm_step中取就行了
-    
+                           ! 而对流放在dyn中，并每loadStepLoop都会更新，而staVec直接从Fm_step中取就行了
+    loadStepLoop = 0       ! 重置载荷步，只为提取环境辐射的环境温度，计算环境辐射
     do loadLoop=1,stepNumAt(iper)
-
+        loadStepLoop = loadStepLoop + 1
+        
         staVec = Fm_step(:,loadLoop)
         
     ! 开始进行时间步迭代循环

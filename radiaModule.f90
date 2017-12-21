@@ -64,7 +64,7 @@ contains
         use mainCtrlInf, only: analyType, CmatType, timeIntType
         use nodeInf, only:dofID
         use heatFlowCtrlInf, only: nRadiaNd
-        use heatFlowInf, only:radiaNdValue, radiaNdInf
+        use heatFlowInf, only:radiaNdValue, radiaNdInf, loadStepLoop
             integer:: sfID, elmNdNum, ndID(4), nodeIDtemp1, nodeIDtemp2, i, j, k
             real:: coords(3,4), shapF, emmision
             real:: tempNd(4), tempEnv(4), res(4), N(4), radiaK(4,4)
@@ -79,7 +79,7 @@ contains
                         nodeIDtemp1 = ndID(i)
                         do j=1, nRadiaNd
                             nodeIDtemp2 = radiaNdInf(1,j) ! 过滤出受辐射节点的输入的环境温度
-                            if(nodeIDtemp1==nodeIDtemp2) tempEnv(i) = radiaNdValue(1, j)
+                            if(nodeIDtemp1==nodeIDtemp2) tempEnv(i) = radiaNdValue(loadStepLoop, j)
                         enddo
                         tempNd(i) = Phi_now(nodeIDtemp1)
                     enddo
@@ -163,6 +163,7 @@ contains
                     tempEnv_ = 0.0; tempNd_ = 0.0; tempDelt = 0.0
                     fac = weightTotal*areaRadia
 					! 计算环境平均温度和节点平均温度
+                    tempNd_=0.0; tempEnv_=0.0; tempDelt=0.0;
 					do i=1,ndNum
 						tempEnv_ = tempEnv_ + tempEnv(i)*N(i)
 						tempNd_ = tempNd_ + tempNd(i)*N(i)

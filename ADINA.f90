@@ -37,9 +37,9 @@
         
 ! 2. get the 外部对流及固定温度载荷        
         if (haveLnConvOrFixTempLoad>0) then
-
+            Phi_now(1) = 10
             dynVec = dynVec - matmul(staMatK_k, Phi_now)
-
+            Phi_now(1) = 0
         end if
 ! 3. consider the 热容的作用        
         if (haveSHnode>0) then

@@ -399,7 +399,7 @@ end if
                     call caldNdx(r, s, t, nod9, elmID, coords, N, dNdxi, Jmat, Jinv, Jdet)
                     fac = weightTotal*Jdet*heatGen
                     do k = 1,ndNum
-                        res(k) = N(k)*fac
+                        res(k) = res(k) + N(k)*fac
                     enddo
                 enddo
             enddo
