@@ -40,7 +40,7 @@ do iper=1,nFixTimeStep
     ind=2
     if(iper>1) call ADINI
 
-
+    
     call execute_heatFlow  ! 累加第iper总步下各个loadStepLoop时间步下的集中热流+对流右端项，都是sta静态的，存到Fm_step中
                            ! 而对流放在dyn中，并每loadStepLoop都会更新，而staVec直接从Fm_step中取就行了
     loadStepLoop = 0       ! 重置载荷步，只为提取环境辐射的环境温度，计算环境辐射
@@ -54,7 +54,7 @@ do iper=1,nFixTimeStep
         timeNow = timeStart
         ind = 4
     
-        ksref = 0; kequit = 0; ite = 0; icount = 2;
+        ksref = 0; kequit = 0; icount = 2;
 
         staMat = staMatK_c + staMatK_k + staMatC0
         
@@ -90,19 +90,21 @@ do iper=1,nFixTimeStep
             enddo
         end if
 ! 2. 计算等效非线性 传到矩阵
-        ind = 4
+        ind = 4; icount = 2;
         call assem_element ! 总装非线性矩阵到 dynMat 中
+        
+
         totMat = staMat + dynMat
         totVec = staVec + dynVec
         rnorm = norm2(totVec)
         
         if((klin==0).and.(timeIntType.ne.2)) then
-            if(nFixTempNd>0) call execute_FixTempNd   
             call LUsolve(totMat,totVec,Phi_now,numEquation) ! 线性问题直接计算就ok，不用迭代
         end if
 !        call updateTemp(Phi_now, Phi_incTol)
         loopNum = loopNum+1
-        if((klin>0).and.(iit==0).and.(alpha/=0.0)) then
+        if((klin>0).and.(iit==0).and.(alpha/=0.0)) then            
+            call LUsolve(totMat,totVec,Phi_now,numEquation)
             call equitIte
         end if
 ! 更新解向量，重置中间矩阵    

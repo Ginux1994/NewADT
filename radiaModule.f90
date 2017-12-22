@@ -7,11 +7,13 @@
     implicit none
 ! npar information    
     integer:: nRadiaElm, nonLrMat, deathType, nRadiaNd, nRadiaLine, nRadiaSurf, radiaLineType,&
-			  radiaEmissType, nRadiaEmissGrp, nRadiaEmiss, unitType
+			  radiaEmissType, nRadiaEmissGrp, nRadiaEmiss, unitType, &
+              radiaType
 ! radiation element information
-    integer, allocatable:: radiaNdID(:,:), radiaSFNdID(:,:), shapFLine(:,:), thickRadia(:,:), shapFSF(:)
+    integer, allocatable:: radiaNdID(:,:), radiaSFNdID(:,:), shapFLine(:,:), thickRadia(:,:), shapFSF(:), radiaFtoFID(:,:), &
+                            nRadiaSrc(:)
     real, allocatable:: propEmiss(:,:), shapFNd(:,:), areaRadia(:,:), rlh(:,:), specHeat, deaTime(:), &
-	xyz_radia(:,:)
+	xyz_radia(:,:), shapFtoF(:,:)
     real:: sigma
 	
 	
@@ -22,16 +24,19 @@ contains
             use mainCtrlInf, only: nElmGrp, npar, nLatht, nNd
             use nodeInf, only: dofID, x, y, z
             integer:: elmGrpID, matID, surfID, i, j, k, ndID, idLoop=1, ii, jj, kk
-            integer:: ndIDTemp(8), dummy2, kg, nod9
+            integer:: ndIDTemp(8), dummy2, kg, nod9, nRadiaSrcFace
+            radiaType = npar(2,elmGrpID)
 			npar(3,elmGrpID) = 1; deathType=npar(4,elmGrpID);
 			nRadiaNd = npar(5,elmGrpID); nRadiaLine = npar(6,elmGrpID); nRadiaSurf=npar(7,elmGrpID); 
 			radiaLineType=npar(9,elmGrpID);!轴对称=0，平面=1
             radiaEmissType=npar(15,elmGrpID); nRadiaEmissGrp=npar(16,elmGrpID); nRadiaEmiss=npar(17,elmGrpID); 
-
-			allocate(shapFSF(nRadiaSurf))
+            
+            
+			allocate(shapFSF(nRadiaSurf), radiaFtoFID(nRadiaSurf,nRadiaSurf), shapFtoF(nRadiaSurf,nRadiaSurf), nRadiaSrc(nRadiaSurf))
             allocate(propEmiss(nRadiaEmiss,nRadiaEmissGrp))
             allocate(deaTime(nRadiaSurf))
             allocate(radiaSFNdID(8,nRadiaSurf), xyz_radia(3,nRadiaSurf*8))
+            
     ! read material inf
 			read(5,*) unitType, sigma
             do i=1,nRadiaEmissGrp              
@@ -42,6 +47,7 @@ contains
 					! read(5,*) (propEmiss(matID, i), )
                 end if
             enddo   
+if(radiaType==0) then   ! 辐射类型为0，环境辐射
     ! read element inf
             do i=1,nRadiaSurf ! 对所有传导单元循环，线性及非线性的
                 read(5,*) surfID, (ndIDTemp(j), j=1,8), dummy2, kg, shapFSF(surfID), deaTime(surfID)  
@@ -56,7 +62,24 @@ contains
                     end if
 				enddo
             enddo
-			
+else if(radiaType==1) then  ! 辐射类型为0，面面辐射
+    ! read element inf
+            do i=1,nRadiaSurf ! 对所有传导单元循环，线性及非线性的              
+                read(5,*) surfID, (ndIDTemp(j), j=1,8), dummy2, kg, nRadiaSrcFace, deaTime(surfID)  
+                read(5,*) (radiaFtoFID(j, surfID), j=1,nRadiaSrcFace)
+                read(5,*) (shapFtoF(j, surfID), j=1,nRadiaSrcFace)
+                radiaSFNdID(:, surfID) = ndIDTemp; nRadiaSrc(surfID) = nRadiaSrcFace
+            enddo	
+            xyz_radia = 0.0
+			do i=1,nRadiaSurf ! 对i号单元所有节点循环
+				do j=1,8
+					ndID = radiaSFNdID(j,i)
+					if(ndID.ne.0) then
+                        xyz_radia(1, ndID) = x(ndID); xyz_radia(2, ndID) = Y(ndID); xyz_radia(3, ndID) = Z(ndID);
+                    end if
+				enddo
+            enddo
+end if        
         end subroutine read_radiaElm
 		
 		subroutine assem_radiaElm
@@ -65,15 +88,16 @@ contains
         use nodeInf, only:dofID
         use heatFlowCtrlInf, only: nRadiaNd
         use heatFlowInf, only:radiaNdValue, radiaNdInf, loadStepLoop
-            integer:: sfID, elmNdNum, ndID(4), nodeIDtemp1, nodeIDtemp2, i, j, k
+            integer:: sfID, srcID, srcLoop, elmNdNum, ndID(4), srcNdID(4), nodeIDtemp1, nodeIDtemp2, i, j, k
             real:: coords(3,4), shapF, emmision
             real:: tempNd(4), tempEnv(4), res(4), N(4), radiaK(4,4)
             if (ind>0) then
+if(radiaType==0) then
                 do sfID=1, nRadiaSurf
                     
                     call getCoordsBySFID(sfID, 4, coords)
                     call getNdIDBySFID(sfID, 8, ndID)
-                    shapF = shapFSF(sfID); emmision = propEmiss(sfID, 1)
+                    shapF = shapFSF(sfID); emmision = propEmiss(1, 1)
                     
                     do i=1,4
                         nodeIDtemp1 = ndID(i)
@@ -95,9 +119,37 @@ contains
                     end if
                     
                 enddo
-                
-            end if
-
+else if(radiaType==1) then
+                do sfID=1, nRadiaSurf
+                    do srcLoop = 1, nRadiaSrc(sfID) !对所有辐射面源循环
+                        
+                        srcID = radiaFtoFID(srcLoop, sfID) ! 第srcLoop个辐射源的面ID
+                        
+                        call getCoordsBySFID(sfID, 4, coords)
+                        call getNdIDBySFID(sfID, 8, ndID)
+                        call getNdIDBySFID(srcID, 8, srcNdID) ! 获取辐射源srcID的节点编号，用于获取该辐射源的温度
+                        shapF = shapFtoF(srcLoop, sfID); emmision = propEmiss(1, 1)
+                    
+                        do i=1,4
+                            nodeIDtemp1 = ndID(i)
+                            nodeIDtemp2 = srcNdID(i) ! 过滤出受辐射节点的输入的环境温度
+                            tempEnv(i) = Phi_now(nodeIDtemp2)
+                            tempNd(i) = Phi_now(nodeIDtemp1)
+                        enddo
+                    
+                        call calRadiaK(4, emmision, shapF, coords, tempNd, tempEnv, res, radiaK)
+                    
+                        if(timeIntType==2) then
+                            call assemDynVec_c_r(res, ndID)
+                        else 
+                            call assemDynVec_c_r(res, ndID)
+                            if(icount>2)  return
+                            if(isref==0) call assemDynMatK_c_r(radiaK, ndID)
+                        end if
+                    enddo
+                enddo    
+end if  !if(radiaType==0) then
+            end if  !if (ind>0) then
 		end subroutine assem_radiaElm
 
         subroutine getCoordsBySFID(sfID, nSfNd, coords)
@@ -153,7 +205,7 @@ contains
 		else 
 			tempOffset = 0.0
 		end if
-        
+        !tempOffset = 0.0
         do xLoop=1,numGaussP
              r = gaussPoint(xLoop, numGaussP)
             do yLoop = 1,numGaussP
@@ -161,7 +213,7 @@ contains
                     weightTotal = gaussWeight(xLoop, numGaussP)*gaussWeight(yLoop, numGaussP)
                     call dNdxi_radia(r, s, ndNum, nod5, coords, N, areaRadia)
                     tempEnv_ = 0.0; tempNd_ = 0.0; tempDelt = 0.0
-                    fac = weightTotal*areaRadia
+                    !fac = weightTotal*areaRadia
 					! 计算环境平均温度和节点平均温度
                     tempNd_=0.0; tempEnv_=0.0; tempDelt=0.0;
 					do i=1,ndNum
@@ -178,13 +230,13 @@ contains
 					end if		
 					! 计算辐射系数
 					radiaCoef = emmision*shapF*sigma*(tempEnv_*tempEnv_ + tempNd_*tempNd_)*(tempEnv_ + tempNd_)
-					fac = fac*radiaCoef
+					fac = weightTotal*areaRadia*radiaCoef
 					! 计算右端项
 					do i=1,ndNum
 						res(i) = res(i) + fac*tempDelt*N(i)
 					enddo
 					! 选择性的计算辐射刚度矩阵
-					if((icount<=2).and.(isref==0)) then
+					if((icount<=3).and.(isref==0)) then
 						if(timeIntType.ne.2) then       
                             do i=1,ndNum
                                 do j=1,ndNum
@@ -247,6 +299,7 @@ contains
 				temp(3) = temp(3) + Jmat(2,i)*Jmat(2,i)
 			enddo
 			areaRadia = sqrt(temp(1)*temp(3)-temp(2)*temp(2))
+            if(areaRadia<0.0) pause
 			return
 		end subroutine dNdxi_radia
     

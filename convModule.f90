@@ -195,7 +195,7 @@ end if
                 s = gaussPoint(yLoop, numGaussP)
                     weightTotal = gaussWeight(xLoop, numGaussP)*gaussWeight(yLoop, numGaussP)
                     call dNdxi_conv(r, s, ndNum, nod5, coords, N, areaConv)
-                    fac = weightTotal*areaConv
+                    !fac = weightTotal*areaConv
 					! 计算环境平均温度和节点平均温度
                     tempNd_=0.0; tempEnv_=0.0; tempDelt=0.0;
 					do i=1,ndNum
@@ -212,7 +212,7 @@ end if
                             exit
                         end if
                     enddo
-					fac = fac*propH
+					fac = weightTotal*areaConv*propH
 					! 计算右端项
 					do i=1,ndNum
 						res(i) = res(i) + fac*N(i)*tempDelt

@@ -37,3 +37,317 @@
 4,,,,,,1,,1,,,,,,1,1,1,0,,,									!14.对流元控制卡
 1,1
 1,5,6,7,8,0,0,0,0,1,1,1.0,10.0,							!对流面的数据
+
+
+
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.000000E+00
+            2  0.000000E+00
+            3  0.000000E+00
+            4  0.000000E+00
+            5  0.000000E+00
+            6  0.000000E+00
+            7  0.000000E+00
+            8  0.000000E+00
+ kkk=k-matrix           1
+0.100000E+110.268939E+000.313412E-010.395019E+000.262910E-01-.563613E-01
+0.702934E+000.146764E+00-.216391E-010.546830E-010.135659E+01-.674408E+00
+ flow=vector  kkk=           2
+0.100000E+120.322581E+010.000000E+000.000000E+000.862066E+000.862066E+00
+  p r i n t - o u t   f o r   t i m e   s t e p    1                                         ( at time   0.1000E+00 )
+
+  no equilibrium iteration in this time step  
+  conductivity reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.198394E+02
+            3  0.694522E+01
+            4  0.925098E+01
+            5  0.895953E+01
+            6  0.718658E+01
+            7  0.691669E+01
+            8  0.524967E+01
+ flow=vector  kkk=           2
+0.100000E+120.645161E+010.000000E+000.000000E+000.172413E+010.172413E+01
+  p r i n t - o u t   f o r   t i m e   s t e p    2                                         ( at time   0.2000E+00 )
+
+  no equilibrium iteration in this time step  
+  conductivity not reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.385654E+02
+            3  0.106191E+02
+            4  0.164352E+02
+            5  0.150302E+02
+            6  0.126172E+02
+            7  0.119257E+02
+            8  0.112717E+02
+ flow=vector  kkk=           2
+0.100000E+120.967742E+010.000000E+000.000000E+000.258620E+010.258620E+01
+  p r i n t - o u t   f o r   t i m e   s t e p    3                                         ( at time   0.3000E+00 )
+
+  no equilibrium iteration in this time step  
+  conductivity not reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.572914E+02
+            3  0.142931E+02
+            4  0.236194E+02
+            5  0.211008E+02
+            6  0.180478E+02
+            7  0.169348E+02
+            8  0.172937E+02
+ kkk=k-matrix           1
+0.100000E+110.268939E+000.313412E-010.395019E+000.262910E-01-.563613E-01
+0.702934E+000.146764E+00-.216391E-010.546830E-010.135659E+01-.674408E+00
+ flow=vector  kkk=           2
+0.100000E+120.100000E+020.000000E+000.000000E+000.267241E+010.267241E+01
+  p r i n t - o u t   f o r   t i m e   s t e p    4                                         ( at time   0.5000E+00 )
+
+  no equilibrium iteration in this time step  
+  conductivity reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.591640E+02
+            3  0.146605E+02
+            4  0.243378E+02
+            5  0.217078E+02
+            6  0.185909E+02
+            7  0.174357E+02
+            8  0.178959E+02
+ flow=vector  kkk=           2
+0.100000E+120.100000E+020.000000E+000.000000E+000.267241E+010.267241E+01
+  p r i n t - o u t   f o r   t i m e   s t e p    5                                         ( at time   0.7000E+00 )
+
+  no equilibrium iteration in this time step  
+  conductivity not reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.591640E+02
+            3  0.146605E+02
+            4  0.243378E+02
+            5  0.217078E+02
+            6  0.185909E+02
+            7  0.174357E+02
+            8  0.178959E+02
+ kkk=k-matrix           1
+0.100000E+110.268939E+000.313412E-010.395019E+000.262910E-01-.563613E-01
+0.702934E+000.146764E+00-.216391E-010.546830E-010.135659E+01-.674408E+00
+ flow=vector  kkk=           2
+0.100000E+120.105823E+020.000000E+000.000000E+000.282803E+010.282803E+01
+  p r i n t - o u t   f o r   t i m e   s t e p    6                                         ( at time   0.1000E+01 )
+
+  no equilibrium iteration in this time step  
+  conductivity reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.625445E+02
+            3  0.153237E+02
+            4  0.256347E+02
+            5  0.228037E+02
+            6  0.195712E+02
+            7  0.183399E+02
+            8  0.189831E+02
+ flow=vector  kkk=           2
+0.100000E+120.111847E+020.000000E+000.000000E+000.298902E+010.298902E+01
+  p r i n t - o u t   f o r   t i m e   s t e p    7                                         ( at time   0.1300E+01 )
+
+  no equilibrium iteration in this time step  
+  conductivity not reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.660415E+02
+            3  0.160098E+02
+            4  0.269763E+02
+            5  0.239374E+02
+            6  0.205854E+02
+            7  0.192753E+02
+            8  0.201076E+02
+ flow=vector  kkk=           2
+0.100000E+120.117871E+020.000000E+000.000000E+000.315000E+010.315000E+01
+  p r i n t - o u t   f o r   t i m e   s t e p    8                                         ( at time   0.1600E+01 )
+
+  no equilibrium iteration in this time step  
+  conductivity not reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.695386E+02
+            3  0.166959E+02
+            4  0.283179E+02
+            5  0.250711E+02
+            6  0.215995E+02
+            7  0.202108E+02
+            8  0.212322E+02
+ flow=vector  kkk=           2
+0.100000E+120.123896E+020.000000E+000.000000E+000.331099E+010.331099E+01
+  p r i n t - o u t   f o r   t i m e   s t e p    9                                         ( at time   0.1900E+01 )
+
+  no equilibrium iteration in this time step  
+  conductivity not reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.730356E+02
+            3  0.173820E+02
+            4  0.296596E+02
+            5  0.262047E+02
+            6  0.226137E+02
+            7  0.211462E+02
+            8  0.223568E+02
+ flow=vector  kkk=           2
+0.100000E+120.129920E+020.000000E+000.000000E+000.347198E+010.347198E+01
+  p r i n t - o u t   f o r   t i m e   s t e p   10                                         ( at time   0.2200E+01 )
+
+  no equilibrium iteration in this time step  
+  conductivity not reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.765326E+02
+            3  0.180681E+02
+            4  0.310012E+02
+            5  0.273384E+02
+            6  0.236278E+02
+            7  0.220816E+02
+            8  0.234814E+02
+ flow=vector  kkk=           2
+0.100000E+120.135944E+020.000000E+000.000000E+000.363297E+010.363297E+01
+  p r i n t - o u t   f o r   t i m e   s t e p   11                                         ( at time   0.2500E+01 )
+
+  no equilibrium iteration in this time step  
+  conductivity not reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.800296E+02
+            3  0.187542E+02
+            4  0.323428E+02
+            5  0.284721E+02
+            6  0.246420E+02
+            7  0.230170E+02
+            8  0.246060E+02
+ flow=vector  kkk=           2
+0.100000E+120.141968E+020.000000E+000.000000E+000.379396E+010.379396E+01
+  p r i n t - o u t   f o r   t i m e   s t e p   12                                         ( at time   0.2800E+01 )
+
+  no equilibrium iteration in this time step  
+  conductivity not reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.835267E+02
+            3  0.194402E+02
+            4  0.336844E+02
+            5  0.296057E+02
+            6  0.256561E+02
+            7  0.239525E+02
+            8  0.257306E+02
+ flow=vector  kkk=           2
+0.100000E+120.147992E+020.000000E+000.000000E+000.395495E+010.395495E+01
+  p r i n t - o u t   f o r   t i m e   s t e p   13                                         ( at time   0.3100E+01 )
+
+  no equilibrium iteration in this time step  
+  conductivity not reformed for this time step  
+0
+
+
+     n o d a l   p o i n t   t e m p e r a t u r e s
+
+
+         node   temperature            node   temperature            node   temperature            node   temperature
+
+            1  0.100000E+02
+            2  0.870237E+02
+            3  0.201263E+02
+            4  0.350261E+02
+            5  0.307394E+02
+            6  0.266703E+02
+            7  0.248879E+02
+            8  0.268552E+02
+  s o l u t i o n   t i m e   l o g (in sec) 

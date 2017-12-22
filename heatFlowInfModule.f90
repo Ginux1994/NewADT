@@ -248,7 +248,7 @@ contains
         
         
         do loadStepLoop=1, stepNumAt(iper)
-!            if(nFixTempNd>0) call execute_FixTempNd
+            if(nFixTempNd>0) call execute_FixTempNd
             if(haveLrConv>0) call assem_convElm  ! 线性对流矩阵及产生的热流在 组装刚度阵的时候就已经完成了，不再在这个地方重新计算
             ! if(nRadiaNd>0) ! call execute_RadiaNdFlow
             if(nLoad1>0) call execute_Load1
@@ -297,14 +297,19 @@ endif
         
         subroutine execute_FixTempNd
 		use mainCtrlInf, only: numEquation
-		use solCtrlInf, only: totVec, totMat, Phi_incNow, loadLoop
-		real:: a0_
+		use solCtrlInf, only: staVec, staMatK_k, Phi_incNow
+		real:: a0_, bigNum
 		integer:: i, j, k, fixTempNdID, load1NdID
 
         do i=1,nFixTempNd
             fixTempNdID = fixTempNdInf(1,i)
-            totVec(fixTempNdID) = totMat(fixTempNdID, fixTempNdID)*fixTempNdValue(loadLoop,fixTempNdID)*1.e10      
-            totMat(fixTempNdID, fixTempNdID) = totMat(fixTempNdID, fixTempNdID)*1.e10                   
+            if(loadStepLoop==1) then
+                bigNum=1.e10 
+            else 
+                bigNum=1.0
+            end if
+            staVec(fixTempNdID) = staMatK_k(fixTempNdID, fixTempNdID)*fixTempNdValue(loadStepLoop,i)*bigNum   
+            staMatK_k(fixTempNdID, fixTempNdID) = staMatK_k(fixTempNdID, fixTempNdID)*bigNum                
         enddo
     
         end subroutine execute_FixTempNd

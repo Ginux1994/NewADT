@@ -330,6 +330,7 @@ if (ind<4) then !calculate linear element's conductivity matrix
                     t = gaussPoint(zLoop, numGaussP)
                     weightTotal = gaussWeight(xLoop, numGaussP)*gaussWeight(yLoop, numGaussP)*gaussWeight(zLoop, numGaussP)
                     call calBmat(r, s, t, nod9, elmID, coords, N, dNdxi, Jmat, Jinv, Jdet, Bmat)
+                    if(Jdet<0.0) pause
                     fac = weightTotal*Jdet
     
                     Kmat=Kmat + matmul(matmul(transpose(Bmat),Dmat),Bmat)*fac ! B^T*D*B*(|J|*w)             

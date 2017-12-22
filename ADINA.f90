@@ -15,31 +15,37 @@
     
     real:: workVec(numEquation), outHeatF(numEquation), tempPre(numEquation), tempNow(numEquation), &
             effKmat(numEquation, numEquation)
-    real:: norm_PhiIncTol = 0.0,norm_PhiIncNow = 0.0, norm_outHeatF = 0.0
+    real:: norm_PhiIncTol = 0.0,norm_PhiIncNow = 0.0, norm_PhiNow=0.0, norm_outHeatF = 0.0
     real:: norm_Now=0.0, tol_now 
     real:: dummy
     workVec = 0.0 !call initRvec(workVec, numEquation)   
-    icount = 3
+    icount = 2
     if (nLatht>0) then
         ! call pahse, 调用潜热会计算一次温度增量，即温度增量因潜热有一个初值，但暂时先赋零值
 		
     end if
     
     Phi_incTol = 0.0; Phi_incNow = 0.0
-    
+    nMaxEqStep = 100
     do iteLoop=1, nMaxEqStep 
         
 ! 1. 收敛指标 及 中间矩阵变量 归零:
         norm_PhiIncTol = 0.0; norm_PhiIncNow = 0.0; norm_outHeatF = 0.0
-        norm_Now=0.0;
+        norm_Now=0.0; norm_PhiNow=0.0;
 
-		dynMat = 0.0; dynVec = 0.0;	
+		! dynMat = 0.0; dynVec = 0.0;	        
+        dynVec = staVec
+        dynMat = staMat  !无论如何都没有想到，ADINA程序实现竟然跟书上理论不一样，节点反力竟然是用总静态矩阵算的，也就是说考虑了对流刚度阵的影响，想想也是，对流刚度也会产生反力的
+
+        ind=4
+        do i = 1, nNonlrElmGrp
+                ! read the control file 
+            call assem_element !计算并累加 非线性单元产生的 动态mat和动态vec
+        end do            
         
 ! 2. get the 外部对流及固定温度载荷        
         if (haveLnConvOrFixTempLoad>0) then
-            Phi_now(1) = 10
-            dynVec = dynVec - matmul(staMatK_k, Phi_now)
-            Phi_now(1) = 0
+            dynVec = dynVec - matmul(dynMat, Phi_now)
         end if
 ! 3. consider the 热容的作用        
         if (haveSHnode>0) then
@@ -70,19 +76,15 @@
             enddo
         end if
 ! 5. deal with the 非线性单元矩阵，如辐射的作用
-		ind=4
-        do i = 1, nNonlrElmGrp
-                ! read the control file 
-            call assem_element !计算并累加 非线性单元产生的 动态mat和动态vec
-        end do              
-        totMat = staMat + dynMat; totVec = staVec + dynVec
+ 
+!        totMat = staMat + dynMat;  totVec = staVec + dynVec;
         norm_outHeatF = norm2(totVec)
-		if(nFixTempNd>0) call execute_FixTempNd   
+!		if(nFixTempNd>0) call execute_FixTempNd   !12-21删除，不需要乘大数
 ! 6. calculate the increment of the temperatures
         
 
         if (iteLoop<(nMaxEqStep).or.(norm_outHeatF<rnorm)) then             
-                call LUsolve(totMat,totVec,Phi_incNow,numEquation)            
+                call LUsolve(dynMat,dynVec,Phi_incNow,numEquation)            
         else 
             write(*,*) 'out of balance heat flows larger than incremental heat flows after iteration,i5/4x,20hstop if number eq. 0'
             convergenFlag = 2
@@ -106,12 +108,13 @@
         Phi_now = Phi_now + Phi_incNow
         norm_PhiIncTol = norm2(Phi_incTol)
         norm_PhiIncNow = norm2(Phi_incNow)
-
+        norm_PhiNow=norm2(Phi_now)
         ! 更新收敛准则
-        if (norm_Now<norm_PhiIncNow) norm_Now=norm_PhiIncTol
+        if (norm_Now<norm_PhiIncNow) norm_Now=norm_PhiNow
         tol_now = norm_Now*tol_input
+        tol_now = 0.00001
         ! 判断是否达到最大迭代次数
-        if(norm_PhiIncNow<0.000001) exit  !if(norm_PhiIncNow<tol_now) exit
+        if(norm_PhiIncNow<tol_now) exit  !if(norm_PhiIncNow<tol_now) exit
         ! iteLoop = iteLoop + 1      
         if (iteLoop>nMaxEqStep) then
             write(*,*) 'iteration limit reached with no convergence stop   of solution  '
@@ -130,7 +133,7 @@
     
     do i=1,nFixTempNd
         fixTempNdID = fixTempNdInf(1,i)
-        Phi_now(fixTempNdID) = fixTempNdValue(loadLoop,fixTempNdID)
+        Phi_now(fixTempNdID) = fixTempNdValue(loadLoop,i)
     enddo
     
     end subroutine equitIte
